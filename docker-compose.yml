@@ -1,0 +1,48 @@
+version: '3.7'                            # Version von docker-compose.yml
+services:                                 # Auflistung der Services
+  datenbank:                              # Anfang MySQL Service
+    image: mysql:5.7                      # Docker Image
+    container_name: mysql                 # Containername
+    volumes:                              # neues Volume
+       - db_data:/var/lib/mysql           # Voume wird verknüpft    
+    networks:                             # Anfang Netzwerkkonfiguration
+    - Net1                                # Net1 als Netzwerk gesetzt
+    restart: always                       # Nach erstellen Neustarten
+    environment:                          # Anfang environment Parameter
+      MYSQL_ROOT_PASSWORD: '1234'         # Rootpasswort von MySQL setzen
+      MYSQL_DATABASE: wordpress           # Neue Datenbank erstellt
+      MYSQL_USER: user                    # Neuer MySQL User
+      MYSQL_PASSWORD: 1234                # Passwort vom neuem User      
+
+  php:                                    # Anfang PHPMyAdmin Service
+    depends_on:                           # Anfang Abhänigkeit
+      - datenbank                         # Abhängig vom Service datenbank
+    image: phpmyadmin/phpmyadmin:latest   # Docker Image
+    container_name: PHPMyAdmin            # Containername
+    networks:                             # Anfang Netzwerkkonfiguration
+    - Net1                                # Net1 als Netzwerk gesetzt
+    ports:                                # Anfang Portmapping
+      - "8080:80"                         # Container Port 80 auf Localhost Port 8080
+    restart: always                       # Nach erstellen Neustarten
+    environment:                          # Anfang environment Parameter
+      PMA_HOST: datenbank                 # Verlinkung zu MySQL Datenbank
+  
+  wordpress:                              # Anfang Worpress Service
+      depends_on:                         # Anfang Abhängigkeit
+       - datenbank                        # Abhängif von MySQL Datenbank
+      image: wordpress:latest             # Docker Image
+      ports:                              # Anfang Portmapping
+       - "8081:80"                        # Container Port 80 auf Localhost Port 8081
+      restart: always                     # Nach erstellen Neustarten
+      networks:                           # Anfang Netzwerkkonfiguration
+      - Net1                              # Net1 als Netzwerk gesetzt
+      environment:                        # Anfang Environment Parameter
+        WORDPRESS_DB_HOST: datenbank:3306 # Verküpfung auf MySql über SQL Port 3306
+        WORDPRESS_DB_USER: user           # neuer Wordpress User
+        WORDPRESS_DB_PASSWORD: 1234       # Passwort von User
+        WORDPRESS_DB_NAME: wordpress      # Neue Datenbank wordpress
+
+volumes:                                  # Anfang Volume
+  db_data: {}                             # Neues Volume
+networks:                                 # Anfang allgemeine Netzwerkkonfiguration
+  Net1:                                   # Netzwerk Net1 erstellt
